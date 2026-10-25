@@ -1,32 +1,35 @@
-﻿var store = new TelemetryStore();
-var now = DateTimeOffset.UtcNow;
+﻿using Npgsql;
 
-store.Add(new TelemetryRecord(5, 83.7, 1, now.AddMinutes(-10)));
-store.Add(new TelemetryRecord(5, 85.0, 1, now));
-store.Add(new TelemetryRecord(8, 40.0, 1, now.AddMinutes(1)));
-store.Add(new TelemetryRecord(5, 84.2, 1, now.AddMinutes(-5)));
+var connectionString =
+    "Host=127.0.0.1;Port=5432;Database=telemetry;" +
+    "Username=telemetry;Password=telemetry_local";
 
-var latest = store.GetLatest(5);
+await using var dataSource = NpgsqlDataSource.Create(connectionString);
 
-if (latest == null)
+var store = new PostgresTelemetryStore(dataSource);
+
+var record = await store.GetLatestAsync(5);
+
+if (record == null)
 {
-    Console.WriteLine("Измерений нет");
+    Console.WriteLine("Измерения не найдены.");
 }
 else
 {
-    Console.WriteLine($"Последнее значение: {latest.Value}");
+    Console.WriteLine($"Датчик: {record.TagId}");
+    Console.WriteLine($"Значение: {record.Value}");
+    Console.WriteLine($"Качество: {record.Quality}");
+    Console.WriteLine($"Время: {record.Timestamp:O}");
 }
 
-var history = store.GetHistory(
-    5,
-    now.AddMinutes(-10),
-    now,
-    2
-);
+var from = new DateTimeOffset(2026, 10, 21, 4, 0, 0, TimeSpan.Zero);
+var to = new DateTimeOffset(2026, 10, 21, 5, 0, 0, TimeSpan.Zero);
+
+var history = await store.GetHistoryAsync(5, from, to, 10);
 
 Console.WriteLine($"История: {history.Count}");
 
-foreach (var record in history)
+foreach (var item in history)
 {
-    Console.WriteLine(record.Value);
+    Console.WriteLine($"{item.Timestamp:O} — {item.Value}");
 }
