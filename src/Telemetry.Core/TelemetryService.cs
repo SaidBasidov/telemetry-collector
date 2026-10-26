@@ -7,7 +7,9 @@ public class TelemetryService
         _store = store;
     }
 
-    public async Task AddBatchAsync(List<TelemetryRecord> records)
+    public async Task AddBatchAsync(
+    List<TelemetryRecord> records,
+    CancellationToken cancellationToken = default)
     {
         if (records.Count == 0)
         {
@@ -20,7 +22,7 @@ public class TelemetryService
                 "В пачке должно быть не больше 1000 измерений.");
         }
 
-        await _store.AddBatchAsync(records);
+        await _store.AddBatchAsync(records, cancellationToken);
     }
 
     public async Task<TelemetryRecord?> GetLatestAsync(int tagId)

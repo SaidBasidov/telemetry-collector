@@ -11,16 +11,21 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Не задана строка подключения Telemetry.");
 }
 
-await using var dataSource = NpgsqlDataSource.Create(connectionString);
+builder.Services.AddSingleton<NpgsqlDataSource>(
+    _ => NpgsqlDataSource.Create(connectionString));
 
-ITelemetryStore store = new PostgresTelemetryStore(dataSource);
-var service = new TelemetryService(store);
+builder.Services.AddSingleton<ITelemetryStore, PostgresTelemetryStore>();
+
+builder.Services.AddSingleton<TelemetryService>();
+builder.Services.AddHostedService<TelemetryCollector>();
 
 var app = builder.Build();
 
 app.MapGet("/", () => "Telemetry API работает");
 
-app.MapGet("/api/tags/{tagId}/latest", async (int tagId) =>
+app.MapGet("/api/tags/{tagId}/latest", async (
+    int tagId,
+    TelemetryService service) =>
 {
     try
     {
@@ -43,6 +48,7 @@ app.MapGet("/api/tags/{tagId}/history", async (
     int tagId,
     DateTimeOffset from,
     DateTimeOffset to,
+    TelemetryService service,
     int limit = 100) =>
 {
     try
@@ -63,7 +69,9 @@ app.MapGet("/api/tags/{tagId}/history", async (
 });
 
 app.MapPost("/api/telemetry/batch", async (
-    List<TelemetryMeasurementRequest?>? requests) =>
+    List<TelemetryMeasurementRequest?>? requests,
+    TelemetryService service,
+    CancellationToken cancellationToken) =>
 {
     if (requests == null)
     {
@@ -96,7 +104,7 @@ app.MapPost("/api/telemetry/batch", async (
             records.Add(record);
         }
 
-        await service.AddBatchAsync(records);
+        await service.AddBatchAsync(records, cancellationToken);
 
         return Results.Ok(new { saved = records.Count });
     }

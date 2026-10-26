@@ -1,6 +1,8 @@
 public interface ITelemetryStore
 {
-    Task AddBatchAsync(List<TelemetryRecord> records);
+    Task AddBatchAsync(
+    List<TelemetryRecord> records,
+    CancellationToken cancellationToken = default);
 
     Task<TelemetryRecord?> GetLatestAsync(int tagId);
 

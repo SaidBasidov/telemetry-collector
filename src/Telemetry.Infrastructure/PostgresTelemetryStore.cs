@@ -80,18 +80,23 @@ public class PostgresTelemetryStore : ITelemetryStore
         return records;
     }
 
-    public async Task AddBatchAsync(List<TelemetryRecord> records)
+    public async Task AddBatchAsync(
+    List<TelemetryRecord> records,
+    CancellationToken cancellationToken = default)
     {
         if (records.Count == 0)
         {
             return;
         }
 
-        await using var connection = await _dataSource.OpenConnectionAsync();
+        await using var connection =
+            await _dataSource.OpenConnectionAsync(cancellationToken);
         await using var batch = new NpgsqlBatch(connection);
 
         foreach (var record in records)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var command = new NpgsqlBatchCommand(
                 """
             INSERT INTO telemetry_records (tag_id, timestamp, value, quality)
@@ -110,6 +115,6 @@ public class PostgresTelemetryStore : ITelemetryStore
             batch.BatchCommands.Add(command);
         }
 
-        await batch.ExecuteNonQueryAsync();
+        await batch.ExecuteNonQueryAsync(cancellationToken);
     }
 }
