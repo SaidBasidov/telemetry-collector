@@ -25,11 +25,12 @@ app.MapGet("/", () => "Telemetry API работает");
 
 app.MapGet("/api/tags/{tagId}/latest", async (
     int tagId,
-    TelemetryService service) =>
+    TelemetryService service,
+    CancellationToken cancellationToken) =>
 {
     try
     {
-        var record = await service.GetLatestAsync(tagId);
+        var record = await service.GetLatestAsync(tagId, cancellationToken);
 
         if (record == null)
         {
@@ -49,16 +50,13 @@ app.MapGet("/api/tags/{tagId}/history", async (
     DateTimeOffset from,
     DateTimeOffset to,
     TelemetryService service,
+    CancellationToken cancellationToken,
     int limit = 100) =>
 {
     try
     {
         var records = await service.GetHistoryAsync(
-            tagId,
-            from,
-            to,
-            limit
-        );
+            tagId, from, to, limit, cancellationToken);
 
         return Results.Ok(records);
     }

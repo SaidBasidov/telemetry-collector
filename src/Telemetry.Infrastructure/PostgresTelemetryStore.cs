@@ -9,7 +9,9 @@ public class PostgresTelemetryStore : ITelemetryStore
         _dataSource = dataSource;
     }
 
-    public async Task<TelemetryRecord?> GetLatestAsync(int tagId)
+    public async Task<TelemetryRecord?> GetLatestAsync(
+    int tagId,
+    CancellationToken cancellationToken = default)
     {
         await using var command = _dataSource.CreateCommand(
             """
@@ -23,9 +25,10 @@ public class PostgresTelemetryStore : ITelemetryStore
 
         command.Parameters.Add(new NpgsqlParameter { Value = tagId });
 
-        await using var reader = await command.ExecuteReaderAsync();
+        await using var reader =
+            await command.ExecuteReaderAsync(cancellationToken);
 
-        if (await reader.ReadAsync())
+        if (await reader.ReadAsync(cancellationToken))
         {
             return new TelemetryRecord(
                 reader.GetInt32(0),
@@ -42,7 +45,8 @@ public class PostgresTelemetryStore : ITelemetryStore
     int tagId,
     DateTimeOffset from,
     DateTimeOffset to,
-    int limit = 100)
+    int limit = 100,
+    CancellationToken cancellationToken = default)
     {
         await using var command = _dataSource.CreateCommand(
             """
@@ -61,11 +65,12 @@ public class PostgresTelemetryStore : ITelemetryStore
         command.Parameters.Add(new NpgsqlParameter { Value = to.ToUniversalTime() });
         command.Parameters.Add(new NpgsqlParameter { Value = limit });
 
-        await using var reader = await command.ExecuteReaderAsync();
+        await using var reader =
+            await command.ExecuteReaderAsync(cancellationToken);
 
         var records = new List<TelemetryRecord>();
 
-        while (await reader.ReadAsync())
+        while (await reader.ReadAsync(cancellationToken))
         {
             var record = new TelemetryRecord(
                 reader.GetInt32(0),

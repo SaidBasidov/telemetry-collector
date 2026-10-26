@@ -25,21 +25,24 @@ public class TelemetryService
         await _store.AddBatchAsync(records, cancellationToken);
     }
 
-    public async Task<TelemetryRecord?> GetLatestAsync(int tagId)
+    public async Task<TelemetryRecord?> GetLatestAsync(
+    int tagId,
+    CancellationToken cancellationToken = default)
     {
         if (tagId <= 0)
         {
             throw new ArgumentException("ID должен быть больше 0.");
         }
 
-        return await _store.GetLatestAsync(tagId);
+        return await _store.GetLatestAsync(tagId, cancellationToken);
     }
 
     public async Task<List<TelemetryRecord>> GetHistoryAsync(
-        int tagId,
-        DateTimeOffset from,
-        DateTimeOffset to,
-        int limit = 100)
+    int tagId,
+    DateTimeOffset from,
+    DateTimeOffset to,
+    int limit = 100,
+    CancellationToken cancellationToken = default)
     {
         if (tagId <= 0)
         {
@@ -57,6 +60,7 @@ public class TelemetryService
             throw new ArgumentException("Лимит должен быть больше 0.");
         }
 
-        return await _store.GetHistoryAsync(tagId, from, to, limit);
+        return await _store.GetHistoryAsync(
+             tagId, from, to, limit, cancellationToken);
     }
 }
