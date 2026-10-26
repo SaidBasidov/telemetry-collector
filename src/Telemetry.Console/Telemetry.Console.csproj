@@ -11,4 +11,9 @@
     <PackageReference Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Telemetry.Core\Telemetry.Core.csproj" />
+    <ProjectReference Include="..\Telemetry.Infrastructure\Telemetry.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

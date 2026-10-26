@@ -1,6 +1,6 @@
 using Npgsql;
 
-public class PostgresTelemetryStore
+public class PostgresTelemetryStore : ITelemetryStore
 {
     private readonly NpgsqlDataSource _dataSource;
 
@@ -11,11 +11,6 @@ public class PostgresTelemetryStore
 
     public async Task<TelemetryRecord?> GetLatestAsync(int tagId)
     {
-        if (tagId <= 0)
-        {
-            throw new ArgumentException("ID должен быть больше 0.");
-        }
-
         await using var command = _dataSource.CreateCommand(
             """
             SELECT tag_id, value, quality, timestamp
@@ -49,22 +44,6 @@ public class PostgresTelemetryStore
     DateTimeOffset to,
     int limit = 100)
     {
-        if (tagId <= 0)
-        {
-            throw new ArgumentException("ID должен быть больше 0.");
-        }
-
-        if (from > to)
-        {
-            throw new ArgumentException(
-                "Начало периода не может быть позже конца.");
-        }
-
-        if (limit <= 0)
-        {
-            throw new ArgumentException("Лимит должен быть больше 0.");
-        }
-
         await using var command = _dataSource.CreateCommand(
             """
         SELECT tag_id, value, quality, timestamp
