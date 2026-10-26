@@ -9,11 +9,25 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U telemetry -d telemetry"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__Telemetry: "Host=db;Port=5432;Database=telemetry;Username=telemetry;Password=telemetry_local"
+    ports:
+      - "127.0.0.1:5000:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
