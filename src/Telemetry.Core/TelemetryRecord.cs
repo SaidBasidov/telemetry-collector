@@ -5,7 +5,7 @@ public class TelemetryRecord
     public int Quality { get; }
     public DateTimeOffset Timestamp { get; }
 
-    public  TelemetryRecord(
+    public TelemetryRecord(
         int tagId,
         double value,
         int quality,
@@ -19,6 +19,11 @@ public class TelemetryRecord
         if (quality != 0 && quality != 1)
         {
             throw new ArgumentException("Качество должно быть 0 или 1.");
+        }
+
+        if (!double.IsFinite(value))
+        {
+            throw new ArgumentException("Значение должно быть конечным числом.");
         }
 
         TagId = tagId;

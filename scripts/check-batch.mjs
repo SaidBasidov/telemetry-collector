@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 
-const baseUrl = 'http://127.0.0.1:8080'
+const baseUrl = process.env.TELEMETRY_BASE_URL || 'http://127.0.0.1:8080'
 
 // Отдельные тестовые датчики вне диапазона фонового сборщика.
 const tagId = 1_000_000_000 + Math.floor(Math.random() * 100_000_000)

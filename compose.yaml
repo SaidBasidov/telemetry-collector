@@ -40,5 +40,16 @@ services:
         condition: service_started
         restart: true
 
+  checks:
+    profiles: ["checks"]
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    environment:
+      ConnectionStrings__Telemetry: "Host=db;Port=5432;Database=telemetry;Username=telemetry;Password=telemetry_local"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   postgres_data:

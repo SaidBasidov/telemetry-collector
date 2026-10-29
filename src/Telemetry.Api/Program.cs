@@ -17,7 +17,11 @@ builder.Services.AddSingleton<NpgsqlDataSource>(
 builder.Services.AddSingleton<ITelemetryStore, PostgresTelemetryStore>();
 
 builder.Services.AddSingleton<TelemetryService>();
-builder.Services.AddHostedService<TelemetryCollector>();
+
+if (builder.Configuration.GetValue("Collector:Enabled", true))
+{
+    builder.Services.AddHostedService<TelemetryCollector>();
+}
 
 var app = builder.Build();
 
